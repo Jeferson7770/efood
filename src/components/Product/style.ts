@@ -13,7 +13,7 @@ export const Card = styled.div`
   position: relative;
 `
 
-/* IMAGEM — ocupa toda a largura do card */
+/* ocupa toda a largura do card */
 export const CardImage = styled.img`
   width: 100%;
   height: 217px;
@@ -21,14 +21,14 @@ export const CardImage = styled.img`
   display: block;
 `
 
-/* CONTEÚDO — padding só no texto */
+/* padding só no texto */
 export const Content = styled.div`
   padding: 16px;
 `
 
 export const Header = styled.div`
   display: flex;
-  align-items: center; /* mantém tudo na mesma linha */
+  align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
 `

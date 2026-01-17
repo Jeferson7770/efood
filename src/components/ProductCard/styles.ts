@@ -31,7 +31,7 @@ export const CardDescription = styled.p`
   margin: 8px 0;
 
   display: -webkit-box;
-  -webkit-line-clamp: 4; /* 🔥 LIMITE DE LINHAS */
+  -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;

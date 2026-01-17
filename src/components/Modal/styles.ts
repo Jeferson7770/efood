@@ -13,11 +13,11 @@ export const Overlay = styled.div`
 `
 
 export const ModalContainer = styled.div`
-  background-color: #e66767;
+  background-color: ${cores.rose};
   width: 960px;
   padding: 32px;
   position: relative;
-  color: #fff;
+  color: ${cores.branco};
 `
 
 export const CloseButton = styled.button`
