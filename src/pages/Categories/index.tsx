@@ -1,72 +1,62 @@
+import { useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import { Container } from '../../styles'
 import ItemsCategories from '../../models/ItemsCategories'
-
-import marguerita from '../../assets/images/Marguerita.webp'
-import bahiana from '../../assets/images/Bahiana.png'
-import mexicana from '../../assets/images/Mexicana.jpg'
-import frango_catupiry from '../../assets/images/Frango_catupiry.jpg'
-import portuguesa from '../../assets/images/Portuguesa.webp'
-import calabresa from '../../assets/images/Calabresa.jpg'
-import la_dolce_vita from '../../assets/images/la_dolce.png'
+import { Restaurant } from '../../models/Restaurant'
 import Hero from '../../components/Hero'
 import ProductCardList from '../../components/ProductCardList'
 
-const promocoes: ItemsCategories[] = [
-  {
-    id: 1,
-    title: 'Pizza Marguerita',
-    description:
-      'A clássica Marguerita: molho de tomate suculento, mussarela derretida, manjericão fresco e um toque de azeite. Sabor e simplicidade!',
-    image: marguerita
-  },
-  {
-    id: 2,
-    title: 'Pizza Baiana',
-    description:
-      'Uma explosão de sabor! A Pizza Baiana combina molho de tomate, mussarela derretida, calabresa picante, ovos, pimenta e um toque especial de temperos. Perfeita para quem gosta de intensidade e personalidade.',
-    image: bahiana
-  },
-  {
-    id: 3,
-    title: 'Pizza Mexicana',
-    description:
-      'Inspirada nos sabores do México, essa pizza traz molho de tomate, mussarela, carne temperada, pimenta, cebola e especiarias marcantes. Picante na medida certa e cheia de atitude.',
-    image: mexicana
-  },
-  {
-    id: 4,
-    title: 'Pizza Frango com Catupiry ',
-    description:
-      'Clássica e irresistível! Frango desfiado bem temperado, coberto com Catupiry cremoso e mussarela derretida. Uma combinação suave, cremosa e extremamente saborosa.',
-    image: frango_catupiry
-  },
-  {
-    id: 5,
-    title: 'Pizza Portuguesa',
-    description:
-      'Tradicional e completa! Molho de tomate, mussarela, presunto, ovos, cebola, azeitonas e ervilha, criando uma mistura equilibrada de sabores que agrada em qualquer ocasião.',
-    image: portuguesa
-  },
-  {
-    id: 6,
-    title: 'Pizza Calabresa',
-    description:
-      'A tradicional Pizza Calabresa: molho de tomate encorpado, mussarela derretida, fatias generosas de calabresa levemente picante e cebola na medida certa. Um clássico irresistível, cheio de sabor!',
-    image: calabresa
-  }
-]
+const Categories = () => {
+  const { title } = useParams<{ title: string }>()
+  const [items, setItems] = useState<ItemsCategories[]>([])
+  const [restaurant, setRestaurant] = useState<Restaurant | null>(null)
+  const [loading, setLoading] = useState(true)
 
-const Categories = () => (
-  <>
-    <Hero
-      image={la_dolce_vita}
-      title="La Dolce Vita Trattoria"
-      category="Italiana"
-    />
-    <Container>
-      <ProductCardList itemsCategories={promocoes} />
-    </Container>
-  </>
-)
+  useEffect(() => {
+    fetch('https://api-ebac.vercel.app/api/efood/restaurantes')
+      .then((res) => res.json())
+      .then((data: Restaurant[]) => {
+        const foundRestaurant = data.find((item) => item.titulo === title)
+
+        if (!foundRestaurant) return
+
+        setRestaurant(foundRestaurant)
+
+        const formattedItems: ItemsCategories[] = foundRestaurant.cardapio.map(
+          (item) => ({
+            id: item.id,
+            title: item.nome,
+            description: item.descricao,
+            image: item.foto,
+            price: item.preco,
+            infos: item.porcao
+          })
+        )
+
+        setItems(formattedItems)
+        setLoading(false)
+      })
+  }, [title])
+
+  return (
+    <>
+      {restaurant && (
+        <Hero
+          image={restaurant.capa}
+          title={restaurant.titulo}
+          category={restaurant.tipo}
+        />
+      )}
+
+      {loading ? (
+        <p>Carregando...</p>
+      ) : (
+        <Container>
+          <ProductCardList itemsCategories={items} />
+        </Container>
+      )}
+    </>
+  )
+}
 
 export default Categories

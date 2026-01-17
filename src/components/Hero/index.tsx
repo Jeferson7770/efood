@@ -34,8 +34,8 @@ const Hero = ({ image, title, category }: Props) => {
 
       <Banner image={image}>
         <BannerContent>
-          <Title>{title}</Title>
           <Category>{category}</Category>
+          <Title>{title}</Title>
         </BannerContent>
       </Banner>
     </Container>

@@ -27,7 +27,14 @@ export const CardTitle = styled.h3`
 
 export const CardDescription = styled.p`
   font-size: 14px;
+  line-height: 1.4;
   margin: 8px 0;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 4; /* 🔥 LIMITE DE LINHAS */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `
 
 export const Button = styled.button`

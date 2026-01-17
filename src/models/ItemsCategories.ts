@@ -1,15 +1,8 @@
-class ItemsCategories {
+export default interface ItemsCategories {
+  id: number
   title: string
   description: string
   image: string
-  id: number
-
-  constructor(id: number, title: string, description: string, image: string) {
-    this.id = id
-    this.title = title
-    this.description = description
-    this.image = image
-  }
+  price: number
+  infos: string
 }
-
-export default ItemsCategories

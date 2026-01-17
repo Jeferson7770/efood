@@ -1,21 +1,22 @@
-import { Card, CardImage, CardTitle, CardDescription, Button } from './style'
+import { Card, CardImage, CardTitle, CardDescription, Button } from './styles'
 
 type Props = {
   image: string
   title: string
   description: string
+  onClick: () => void
 }
 
-const ProductCard = ({ image, title, description }: Props) => (
-  <Card>
-    <CardImage src={image} alt={title} />
+const ProductCard = ({ image, title, description, onClick }: Props) => {
+  return (
+    <Card>
+      <CardImage src={image} alt={title} />
+      <CardTitle>{title}</CardTitle>
+      <CardDescription>{description}</CardDescription>
 
-    <CardTitle>{title}</CardTitle>
-
-    <CardDescription>{description}</CardDescription>
-
-    <Button>Adicionar ao carrinho</Button>
-  </Card>
-)
+      <Button onClick={onClick}>Adicionar ao carrinho</Button>
+    </Card>
+  )
+}
 
 export default ProductCard
