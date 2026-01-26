@@ -1,9 +1,12 @@
 import { useState } from 'react'
+import { useDispatch } from 'react-redux'
 import ItemsCategories from '../../models/ItemsCategories'
 import Product from '../ProductCard'
 import Modal from '../Modal'
 import { List } from './styles'
 import { AddButton } from '../Modal/styles'
+import { add, open } from '../../store/reducers/cart'
+import { AppDispatch } from '../../store'
 
 type Props = {
   itemsCategories: ItemsCategories[]
@@ -11,6 +14,16 @@ type Props = {
 
 const ProductCardList = ({ itemsCategories }: Props) => {
   const [selectedItem, setSelectedItem] = useState<ItemsCategories | null>(null)
+
+  const dispatch = useDispatch<AppDispatch>()
+
+  const addToCart = () => {
+    if (!selectedItem) return
+
+    dispatch(add(selectedItem))
+    dispatch(open())
+    setSelectedItem(null)
+  }
 
   return (
     <>
@@ -42,8 +55,8 @@ const ProductCardList = ({ itemsCategories }: Props) => {
               <strong>Serve:</strong> {selectedItem.infos}
             </p>
 
-            <AddButton>
-              Adicionar ao carrinho - R$ {selectedItem.price.toFixed(2)}
+            <AddButton type="button" onClick={addToCart}>
+              Adicionar ao carrinho – R$ {selectedItem.price.toFixed(2)}
             </AddButton>
           </>
         )}

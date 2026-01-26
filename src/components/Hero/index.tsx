@@ -12,6 +12,9 @@ import {
 } from './styles'
 
 import logo from '../../assets/images/logo.png'
+import { open } from '../../store/reducers/cart'
+import { useDispatch, useSelector } from 'react-redux'
+import { RootState, AppDispatch } from '../../store'
 
 type Props = {
   image: string
@@ -21,14 +24,23 @@ type Props = {
 
 const Hero = ({ image, title, category }: Props) => {
   const navigate = useNavigate()
+  const dispatch = useDispatch<AppDispatch>()
+
+  const items = useSelector((state: RootState) => state.cart.items)
+
+  const openCart = () => {
+    dispatch(open())
+  }
 
   return (
     <Container>
       <TopBar>
         <TopBarContent>
           <Cart onClick={() => navigate('/')}>Restaurantes</Cart>
+
           <Logo src={logo} alt="efood" />
-          <Cart>0 produto(s) no carrinho</Cart>
+
+          <Cart onClick={openCart}>{items.length} produto(s) no carrinho</Cart>
         </TopBarContent>
       </TopBar>
 
