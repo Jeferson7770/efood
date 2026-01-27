@@ -33,6 +33,33 @@ export const Sidebar = styled.aside`
   max-width: 360px;
   width: 100%;
 `
+
+export const CartList = styled.ul`
+  max-height: 520px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+
+  padding-right: 8px;
+  margin: 0;
+  list-style: none;
+
+  /* Barra lateral */
+  &::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  /* Trilha */
+  &::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  /* Barra */
+  &::-webkit-scrollbar-thumb {
+    background-color: #333;
+    border-radius: 8px;
+  }
+`
+
 export const Total = styled.div`
   display: flex;
   justify-content: space-between;

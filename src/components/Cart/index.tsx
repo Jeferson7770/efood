@@ -5,7 +5,8 @@ import {
   Prices,
   Sidebar,
   CardItem,
-  Total
+  Total,
+  CartList
 } from './styles'
 
 import { useDispatch, useSelector } from 'react-redux'
@@ -15,7 +16,6 @@ import { formatPrice } from '../../utils/formatPrice'
 
 const Cart = () => {
   const { isOpen, items } = useSelector((state: RootState) => state.cart)
-
   const dispatch = useDispatch()
 
   const closeCart = () => {
@@ -23,8 +23,8 @@ const Cart = () => {
   }
 
   const getTotalPrice = () => {
-    return items.reduce((acumulador, valorAtual) => {
-      return (acumulador += valorAtual.price)
+    return items.reduce((total, item) => {
+      return total + item.price * item.quantity
     }, 0)
   }
 
@@ -35,19 +35,24 @@ const Cart = () => {
   return (
     <CardContainer className={isOpen ? 'is-open' : ''}>
       <Overlay onClick={closeCart} />
+
       <Sidebar>
-        <ul>
+        <CartList>
           {items.map((item) => (
             <CardItem key={item.id}>
               <img src={item.image} alt={item.title} />
+
               <div>
                 <h3>{item.title}</h3>
-                <span>{formatPrice(item.price)}</span>
+                <span>
+                  {formatPrice(item.price)} x {item.quantity}
+                </span>
               </div>
-              <button onClick={() => removeItem(item.id)} type="button" />
+
+              <button type="button" onClick={() => removeItem(item.id)} />
             </CardItem>
           ))}
-        </ul>
+        </CartList>
 
         <Total>
           <Prices>Valor total</Prices>
