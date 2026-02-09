@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
+
 import { Container } from '../../styles'
 import ItemsCategories from '../../models/ItemsCategories'
 import { Restaurant } from '../../models/Restaurant'
 import Hero from '../../components/Hero'
 import ProductCardList from '../../components/ProductCardList'
+import Loader from '../../components/Loader'
 
 const Categories = () => {
   const { title } = useParams<{ title: string }>()
@@ -13,6 +15,7 @@ const Categories = () => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    setLoading(true)
     fetch('https://api-ebac.vercel.app/api/efood/restaurantes')
       .then((res) => res.json())
       .then((data: Restaurant[]) => {
@@ -38,6 +41,10 @@ const Categories = () => {
       })
   }, [title])
 
+  if (loading) {
+    return <Loader />
+  }
+
   return (
     <>
       {restaurant && (
@@ -47,14 +54,9 @@ const Categories = () => {
           category={restaurant.tipo}
         />
       )}
-
-      {loading ? (
-        <p>Carregando...</p>
-      ) : (
-        <Container>
-          <ProductCardList itemsCategories={items} />
-        </Container>
-      )}
+      <Container>
+        <ProductCardList itemsCategories={items} />
+      </Container>
     </>
   )
 }

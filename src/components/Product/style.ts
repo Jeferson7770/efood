@@ -1,11 +1,11 @@
 import styled from 'styled-components'
-import { breakpoints, cores } from '../../styles'
+import { breakpoints, colors } from '../../styles'
 
 export const Card = styled.div`
-  background-color: ${cores.branco};
+  background-color: ${colors.white};
   width: 100%;
   max-width: 472px;
-  border: 1px solid ${cores.rose};
+  border: 1px solid ${colors.rose};
   box-sizing: border-box;
 
   display: flex;
@@ -48,7 +48,7 @@ export const Header = styled.div`
 export const Titulo = styled.h3`
   font-size: 18px;
   font-weight: bold;
-  color: ${cores.rose};
+  color: ${colors.rose};
 
   @media (max-width: 480px) {
     font-size: 16px;
@@ -58,7 +58,7 @@ export const Titulo = styled.h3`
 export const Descricao = styled.p`
   font-size: 14px;
   line-height: 22px;
-  color: ${cores.rose};
+  color: ${colors.rose};
 
   @media (max-width: 480px) {
     font-size: 13px;
@@ -74,7 +74,7 @@ export const Rating = styled.div`
   span {
     font-size: 18px;
     font-weight: bold;
-    color: ${cores.rose};
+    color: ${colors.rose};
 
     @media (max-width: 480px) {
       font-size: 16px;

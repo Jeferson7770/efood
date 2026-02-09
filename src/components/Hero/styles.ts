@@ -1,6 +1,6 @@
 import styled from 'styled-components'
 import fundo from '../../assets/images/fundo.png'
-import { cores, breakpoints } from '../../styles'
+import { colors, breakpoints } from '../../styles'
 
 type BannerProps = {
   image: string
@@ -106,7 +106,7 @@ export const BannerContent = styled.div`
 
 /* Categoria */
 export const Category = styled.span`
-  color: ${cores.branco};
+  color: ${colors.white};
   font-size: 32px;
   font-weight: 100;
   line-height: 32px;
@@ -119,7 +119,7 @@ export const Category = styled.span`
 
 /* Título */
 export const Title = styled.h1`
-  color: ${cores.branco};
+  color: ${colors.white};
   font-size: 32px;
   font-weight: 900;
   line-height: 32px;

@@ -6,6 +6,7 @@ import Header from '../../components/Header'
 import { Restaurant } from '../../models/Restaurant'
 
 import estrela from '../../assets/images/estrela.png'
+import Loader from '../../components/Loader'
 
 const Home = () => {
   const [items, setItems] = useState<Items[]>([])
@@ -41,7 +42,7 @@ const Home = () => {
   }, [])
 
   if (loading) {
-    return <p>Carregando...</p>
+    return <Loader />
   }
 
   return (

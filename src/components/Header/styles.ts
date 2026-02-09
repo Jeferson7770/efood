@@ -1,6 +1,6 @@
 import styled from 'styled-components'
 import fundo from '../../assets/images/fundo.png'
-import { cores, breakpoints } from '../../styles'
+import { colors, breakpoints } from '../../styles'
 
 export const HeaderBar = styled.header`
   background-image: url(${fundo});
@@ -53,7 +53,7 @@ export const Title = styled.h1`
   font-weight: 900;
   line-height: 1.1;
   text-align: center;
-  color: ${cores.rose};
+  color: ${colors.rose};
 
   @media (max-width: ${breakpoints.tablet}) {
     font-size: 28px;

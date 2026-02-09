@@ -1,5 +1,5 @@
 import styled from 'styled-components'
-import { cores, breakpoints } from '../../styles'
+import { colors, breakpoints } from '../../styles'
 
 export const Overlay = styled.div`
   position: fixed;
@@ -15,13 +15,13 @@ export const Overlay = styled.div`
 `
 
 export const ModalContainer = styled.div`
-  background-color: ${cores.rose};
+  background-color: ${colors.rose};
   width: 100%;
   max-width: 960px;
 
   padding: 32px;
   position: relative;
-  color: ${cores.branco};
+  color: ${colors.white};
 
   @media (max-width: ${breakpoints.tablet}) {
     padding: 24px;
@@ -118,8 +118,8 @@ export const TextContent = styled.div`
 export const AddButton = styled.button`
   margin-top: 16px;
 
-  background-color: ${cores.bege};
-  color: ${cores.rose};
+  background-color: ${colors.beige};
+  color: ${colors.rose};
 
   border: none;
   padding: 8px 16px;

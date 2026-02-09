@@ -1,11 +1,11 @@
 import styled from 'styled-components'
-import { cores } from '../../styles'
+import { colors } from '../../styles'
 
 export const Card = styled.div`
   padding: 8px;
-  border: 1px solid ${cores.rose};
-  background-color: ${cores.rose};
-  color: ${cores.bege};
+  border: 1px solid ${colors.rose};
+  background-color: ${colors.rose};
+  color: ${colors.beige};
   display: flex;
   flex-direction: column;
   position: relative;
@@ -39,8 +39,8 @@ export const CardDescription = styled.p`
 
 export const Button = styled.button`
   width: 100%;
-  background-color: ${cores.bege};
-  color: ${cores.rose};
+  background-color: ${colors.beige};
+  color: ${colors.rose};
   border: none;
   padding: 8px;
   cursor: pointer;

@@ -1,8 +1,8 @@
 import styled from 'styled-components'
-import { cores, breakpoints } from '../../styles'
+import { colors, breakpoints } from '../../styles'
 
 export const FooterContainer = styled.footer`
-  background-color: ${cores.bege};
+  background-color: ${colors.beige};
   padding: 64px 16px;
   margin-top: 120px;
 
@@ -63,7 +63,7 @@ export const Description = styled.p`
   line-height: 14px;
   text-align: center;
   font-weight: 400;
-  color: ${cores.rose};
+  color: ${colors.rose};
 
   @media (max-width: 480px) {
     font-size: 9px;
