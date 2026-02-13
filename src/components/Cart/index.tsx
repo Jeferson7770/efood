@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, InputHTMLAttributes } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
@@ -21,12 +21,34 @@ const Cart = () => {
     'cart' | 'delivery' | 'payment' | 'confirmed'
   >('cart')
   const [orderId, setOrderId] = useState('')
+  const [isLoadingCep, setIsLoadingCep] = useState(false)
+  const [cepAutoFilled, setCepAutoFilled] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const closeCart = () => dispatch(close())
   const removeItem = (id: number) => dispatch(remove(id))
 
   const getTotalPrice = () =>
     items.reduce((total, item) => total + item.price * item.quantity, 0)
+
+  const isValidCardNumber = (cardNumber: string) => {
+    const cleaned = cardNumber.replace(/\D/g, '')
+    if (cleaned.length !== 16) return false
+
+    let sum = 0
+    let shouldDouble = false
+
+    for (let i = cleaned.length - 1; i >= 0; i--) {
+      let digit = parseInt(cleaned[i])
+      if (shouldDouble) {
+        digit *= 2
+        if (digit > 9) digit -= 9
+      }
+      sum += digit
+      shouldDouble = !shouldDouble
+    }
+    return sum % 10 === 0
+  }
 
   const formik = useFormik({
     initialValues: {
@@ -44,51 +66,84 @@ const Cart = () => {
     },
     validationSchema: Yup.object({
       receiver: Yup.string()
-        .min(3, 'Nome muito curto')
-        .max(40)
+        .min(3, 'O nome precisa ter pelo menos 3 caracteres')
         .required('Obrigatório'),
       description: Yup.string()
-        .min(5, 'Endereço curto')
-        .max(60)
+        .min(5, 'O endereço precisa ter pelo menos 5 caracteres')
         .required('Obrigatório'),
-      city: Yup.string().max(30).required('Obrigatório'),
-      zipCode: Yup.string().min(9, 'CEP incompleto').required('Obrigatório'),
-      number: Yup.string().max(10).required('Obrigatório'),
-      cardName: Yup.string().when((_, schema) =>
-        stage === 'payment'
-          ? schema.min(3).max(40).required('Obrigatório')
-          : schema
-      ),
-      cardNumber: Yup.string().when((_, schema) =>
-        stage === 'payment'
-          ? schema.min(19, 'Incompleto').required('Obrigatório')
-          : schema
-      ),
-      cardCode: Yup.string().when((_, schema) =>
-        stage === 'payment' ? schema.min(3).required('Obrigatório') : schema
-      ),
-      expiresMonth: Yup.string().when((_, schema) =>
-        stage === 'payment'
-          ? schema
-              .required('Obrigatório')
-              .test(
-                'val',
-                'Mês inválido',
-                (v) => Number(v) >= 1 && Number(v) <= 12
+      city: Yup.string().required('Obrigatório'),
+      zipCode: Yup.string()
+        .required('Obrigatório')
+        .test('cep-valid', 'CEP incompleto', (value) => {
+          if (!value) return false
+          return value.replace(/\D/g, '').length === 8
+        }),
+      number: Yup.string().required('Obrigatório'),
+      cardName: Yup.string().when([], {
+        is: () => stage === 'payment',
+        then: (schema) => schema.required('Obrigatório'),
+        otherwise: (schema) => schema
+      }),
+      cardNumber: Yup.string().when([], {
+        is: () => stage === 'payment',
+        then: (schema) =>
+          schema
+            .required('Obrigatório')
+            .test('card-length', 'Cartão incompleto', (value) => {
+              if (!value) return false
+              return value.replace(/\D/g, '').length === 16
+            })
+            .test('card-luhn', 'Número de cartão inválido', (value) =>
+              value ? isValidCardNumber(value) : false
+            ),
+        otherwise: (schema) => schema
+      }),
+      cardCode: Yup.string().when([], {
+        is: () => stage === 'payment',
+        then: (schema) =>
+          schema
+            .required('Obrigatório')
+            .test('cvv-length', 'CVV inválido', (value) => {
+              if (!value) return false
+              return value.replace(/\D/g, '').length === 3
+            }),
+        otherwise: (schema) => schema
+      }),
+      expiresMonth: Yup.string().when([], {
+        is: () => stage === 'payment',
+        then: (schema) =>
+          schema
+            .required('Obrigatório')
+            .test('month-valid', 'Mês inválido', (value) => {
+              if (!value) return false
+              const month = Number(value)
+              return month >= 1 && month <= 12
+            }),
+        otherwise: (schema) => schema
+      }),
+      expiresYear: Yup.string().when([], {
+        is: () => stage === 'payment',
+        then: (schema) =>
+          schema
+            .required('Obrigatório')
+            .test('year-valid', 'Ano inválido', (value) => {
+              if (!value) return false
+              const currentYear = new Date().getFullYear()
+              const enteredYear = Number(value)
+              return (
+                enteredYear >= currentYear && enteredYear <= currentYear + 10
               )
-          : schema
-      ),
-      expiresYear: Yup.string().when((_, schema) =>
-        stage === 'payment'
-          ? schema.min(4, 'Ano inválido').required('Obrigatório')
-          : schema
-      )
+            }),
+        otherwise: (schema) => schema
+      })
     }),
     onSubmit: async (values) => {
       if (stage === 'delivery') {
         setStage('payment')
         return
       }
+
+      setIsSubmitting(true)
 
       const payload = {
         products: items.map((i) => ({ id: i.id, price: i.price })),
@@ -125,19 +180,56 @@ const Cart = () => {
           }
         )
 
-        if (res.ok) {
-          const data = await res.json()
-          setOrderId(data.orderId)
-          setStage('confirmed')
-          dispatch(clear())
-        } else {
-          alert('Erro no processamento do pagamento. Verifique os dados.')
-        }
-      } catch {
-        alert('Erro de conexão com o servidor.')
+        if (!res.ok) throw new Error()
+
+        const data = await res.json()
+        setOrderId(data.orderId)
+        setStage('confirmed')
+        dispatch(clear())
+      } catch (err) {
+        console.error(err)
+        alert(
+          'Erro ao processar pagamento. Verifique os dados e tente novamente.'
+        )
+      } finally {
+        setIsSubmitting(false)
       }
     }
   })
+
+  const getErrorMessage = (fieldName: keyof typeof formik.values) => {
+    const isTouched = formik.touched[fieldName]
+    const error = formik.errors[fieldName]
+    return isTouched && error ? error : ''
+  }
+
+  const fetchAddressByCep = async (cep: string) => {
+    const cleanCep = cep.replace(/\D/g, '')
+    if (cleanCep.length !== 8) return
+
+    try {
+      setIsLoadingCep(true)
+      const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`)
+      const data = await response.json()
+
+      if (data.erro) {
+        formik.setFieldError('zipCode', 'CEP não encontrado')
+        setCepAutoFilled(false)
+        return
+      }
+
+      formik.setFieldValue('description', data.logradouro)
+      formik.setFieldValue('city', data.localidade)
+      setCepAutoFilled(true)
+      formik.setFieldError('zipCode', '')
+    } catch (error) {
+      console.error(error)
+      formik.setFieldError('zipCode', 'Erro ao buscar CEP')
+      setCepAutoFilled(false)
+    } finally {
+      setIsLoadingCep(false)
+    }
+  }
 
   return (
     <S.CardContainer className={isOpen ? 'is-open' : ''}>
@@ -194,66 +286,96 @@ const Cart = () => {
                   <label htmlFor="receiver">Quem irá receber</label>
                   <input
                     id="receiver"
+                    type="text"
                     {...formik.getFieldProps('receiver')}
                     maxLength={40}
                   />
-                  <S.ErrorMessage>
-                    {formik.touched.receiver && formik.errors.receiver}
-                  </S.ErrorMessage>
+                  <S.ErrorMessage>{getErrorMessage('receiver')}</S.ErrorMessage>
                 </S.InputGroup>
+
                 <S.InputGroup>
                   <label htmlFor="description">Endereço</label>
                   <input
                     id="description"
+                    type="text"
                     {...formik.getFieldProps('description')}
                     maxLength={60}
+                    disabled={cepAutoFilled}
                   />
                   <S.ErrorMessage>
-                    {formik.touched.description && formik.errors.description}
+                    {getErrorMessage('description')}
                   </S.ErrorMessage>
                 </S.InputGroup>
+
                 <S.InputGroup>
                   <label htmlFor="city">Cidade</label>
                   <input
                     id="city"
+                    type="text"
                     {...formik.getFieldProps('city')}
                     maxLength={30}
+                    disabled={cepAutoFilled}
                   />
-                  <S.ErrorMessage>
-                    {formik.touched.city && formik.errors.city}
-                  </S.ErrorMessage>
+                  <S.ErrorMessage>{getErrorMessage('city')}</S.ErrorMessage>
                 </S.InputGroup>
+
                 <S.Row>
                   <S.InputGroup>
                     <label htmlFor="zipCode">CEP</label>
                     <InputMask
                       mask="99999-999"
-                      {...formik.getFieldProps('zipCode')}
+                      value={formik.values.zipCode}
+                      onChange={(e) => {
+                        formik.handleChange(e)
+                        if (e.target.value.replace(/\D/g, '').length === 8) {
+                          fetchAddressByCep(e.target.value)
+                        }
+                      }}
+                      onBlur={formik.handleBlur}
+                      name="zipCode"
                     >
-                      {(
-                        inputProps: React.InputHTMLAttributes<HTMLInputElement>
-                      ) => <input id="zipCode" {...inputProps} />}
+                      {(inputProps: InputHTMLAttributes<HTMLInputElement>) => (
+                        <div style={{ position: 'relative' }}>
+                          <input id="zipCode" type="text" {...inputProps} />
+                          {isLoadingCep && (
+                            <span
+                              style={{
+                                position: 'absolute',
+                                right: 10,
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                fontSize: 12,
+                                color: '#999'
+                              }}
+                            >
+                              Buscando...
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </InputMask>
                     <S.ErrorMessage>
-                      {formik.touched.zipCode && formik.errors.zipCode}
+                      {getErrorMessage('zipCode')}
                     </S.ErrorMessage>
                   </S.InputGroup>
+
                   <S.InputGroup>
                     <label htmlFor="number">Número</label>
                     <input
                       id="number"
+                      type="text"
                       {...formik.getFieldProps('number')}
                       maxLength={10}
                     />
-                    <S.ErrorMessage>
-                      {formik.touched.number && formik.errors.number}
-                    </S.ErrorMessage>
+                    <S.ErrorMessage>{getErrorMessage('number')}</S.ErrorMessage>
                   </S.InputGroup>
                 </S.Row>
+
                 <S.InputGroup>
                   <label htmlFor="complement">Complemento (opcional)</label>
                   <input
                     id="complement"
+                    type="text"
                     {...formik.getFieldProps('complement')}
                     maxLength={100}
                   />
@@ -266,82 +388,107 @@ const Cart = () => {
                 </h3>
                 <S.InputGroup>
                   <label htmlFor="cardName">Nome no cartão</label>
-                  <input id="cardName" {...formik.getFieldProps('cardName')} />
-                  <S.ErrorMessage>
-                    {formik.touched.cardName && formik.errors.cardName}
-                  </S.ErrorMessage>
+                  <input
+                    id="cardName"
+                    type="text"
+                    {...formik.getFieldProps('cardName')}
+                  />
+                  <S.ErrorMessage>{getErrorMessage('cardName')}</S.ErrorMessage>
                 </S.InputGroup>
+
                 <S.Row>
                   <S.InputGroup style={{ flex: 3 }}>
                     <label htmlFor="cardNumber">Número do cartão</label>
                     <InputMask
                       mask="9999.9999.9999.9999"
-                      {...formik.getFieldProps('cardNumber')}
+                      value={formik.values.cardNumber}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      name="cardNumber"
                     >
-                      {(
-                        inputProps: React.InputHTMLAttributes<HTMLInputElement>
-                      ) => <input id="cardNumber" {...inputProps} />}
+                      {(inputProps: InputHTMLAttributes<HTMLInputElement>) => (
+                        <input id="cardNumber" type="text" {...inputProps} />
+                      )}
                     </InputMask>
                     <S.ErrorMessage>
-                      {formik.touched.cardNumber && formik.errors.cardNumber}
+                      {getErrorMessage('cardNumber')}
                     </S.ErrorMessage>
                   </S.InputGroup>
+
                   <S.InputGroup style={{ flex: 1 }}>
                     <label htmlFor="cardCode">CVV</label>
-                    <InputMask mask="999" {...formik.getFieldProps('cardCode')}>
-                      {(
-                        inputProps: React.InputHTMLAttributes<HTMLInputElement>
-                      ) => <input id="cardCode" {...inputProps} />}
+                    <InputMask
+                      mask="999"
+                      value={formik.values.cardCode}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      name="cardCode"
+                    >
+                      {(inputProps: InputHTMLAttributes<HTMLInputElement>) => (
+                        <input id="cardCode" type="text" {...inputProps} />
+                      )}
                     </InputMask>
                     <S.ErrorMessage>
-                      {formik.touched.cardCode && formik.errors.cardCode}
+                      {getErrorMessage('cardCode')}
                     </S.ErrorMessage>
                   </S.InputGroup>
                 </S.Row>
+
                 <S.Row>
                   <S.InputGroup>
                     <label htmlFor="expiresMonth">Mês de vencimento</label>
                     <InputMask
                       mask="99"
-                      {...formik.getFieldProps('expiresMonth')}
+                      value={formik.values.expiresMonth}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      name="expiresMonth"
                     >
-                      {(
-                        inputProps: React.InputHTMLAttributes<HTMLInputElement>
-                      ) => <input id="expiresMonth" {...inputProps} />}
+                      {(inputProps: InputHTMLAttributes<HTMLInputElement>) => (
+                        <input id="expiresMonth" type="text" {...inputProps} />
+                      )}
                     </InputMask>
                     <S.ErrorMessage>
-                      {formik.touched.expiresMonth &&
-                        formik.errors.expiresMonth}
+                      {getErrorMessage('expiresMonth')}
                     </S.ErrorMessage>
                   </S.InputGroup>
+
                   <S.InputGroup>
                     <label htmlFor="expiresYear">Ano de vencimento</label>
                     <InputMask
                       mask="9999"
-                      {...formik.getFieldProps('expiresYear')}
+                      value={formik.values.expiresYear}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      name="expiresYear"
                     >
-                      {(
-                        inputProps: React.InputHTMLAttributes<HTMLInputElement>
-                      ) => <input id="expiresYear" {...inputProps} />}
+                      {(inputProps: InputHTMLAttributes<HTMLInputElement>) => (
+                        <input id="expiresYear" type="text" {...inputProps} />
+                      )}
                     </InputMask>
                     <S.ErrorMessage>
-                      {formik.touched.expiresYear && formik.errors.expiresYear}
+                      {getErrorMessage('expiresYear')}
                     </S.ErrorMessage>
                   </S.InputGroup>
                 </S.Row>
               </>
             )}
+
             <S.ButtonGroup>
-              <Button type="submit">
-                {stage === 'delivery'
+              <Button type="submit" disabled={!formik.isValid || isSubmitting}>
+                {isSubmitting
+                  ? 'Processando...'
+                  : stage === 'delivery'
                   ? 'Continuar com o pagamento'
                   : 'Finalizar pagamento'}
               </Button>
+
               <Button
                 type="button"
                 onClick={() =>
                   setStage(stage === 'delivery' ? 'cart' : 'delivery')
                 }
+                disabled={isSubmitting}
               >
                 Voltar
               </Button>
@@ -373,6 +520,7 @@ const Cart = () => {
               onClick={() => {
                 closeCart()
                 setStage('cart')
+                setOrderId('')
                 formik.resetForm()
               }}
             >
