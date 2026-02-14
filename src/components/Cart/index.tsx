@@ -283,23 +283,23 @@ const Cart = () => {
               <>
                 <h3>Entrega</h3>
                 <S.InputGroup>
-                  <label htmlFor="receiver">Quem irá receber</label>
+                  <label htmlFor="receiver">Quem irá receber*</label>
                   <input
                     id="receiver"
                     type="text"
                     {...formik.getFieldProps('receiver')}
-                    maxLength={40}
+                    maxLength={45}
                   />
                   <S.ErrorMessage>{getErrorMessage('receiver')}</S.ErrorMessage>
                 </S.InputGroup>
 
                 <S.InputGroup>
-                  <label htmlFor="description">Endereço</label>
+                  <label htmlFor="description">Endereço*</label>
                   <input
                     id="description"
                     type="text"
                     {...formik.getFieldProps('description')}
-                    maxLength={60}
+                    maxLength={45}
                     disabled={cepAutoFilled}
                   />
                   <S.ErrorMessage>
@@ -308,12 +308,12 @@ const Cart = () => {
                 </S.InputGroup>
 
                 <S.InputGroup>
-                  <label htmlFor="city">Cidade</label>
+                  <label htmlFor="city">Cidade*</label>
                   <input
                     id="city"
                     type="text"
                     {...formik.getFieldProps('city')}
-                    maxLength={30}
+                    maxLength={35}
                     disabled={cepAutoFilled}
                   />
                   <S.ErrorMessage>{getErrorMessage('city')}</S.ErrorMessage>
@@ -321,7 +321,7 @@ const Cart = () => {
 
                 <S.Row>
                   <S.InputGroup>
-                    <label htmlFor="zipCode">CEP</label>
+                    <label htmlFor="zipCode">CEP*</label>
                     <InputMask
                       mask="99999-999"
                       value={formik.values.zipCode}
@@ -360,13 +360,21 @@ const Cart = () => {
                   </S.InputGroup>
 
                   <S.InputGroup>
-                    <label htmlFor="number">Número</label>
+                    <label htmlFor="number">Número*</label>
                     <input
                       id="number"
                       type="text"
-                      {...formik.getFieldProps('number')}
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       maxLength={10}
+                      value={formik.values.number}
+                      onChange={(e) => {
+                        const onlyNumbers = e.target.value.replace(/\D/g, '')
+                        formik.setFieldValue('number', onlyNumbers)
+                      }}
+                      onBlur={formik.handleBlur}
                     />
+
                     <S.ErrorMessage>{getErrorMessage('number')}</S.ErrorMessage>
                   </S.InputGroup>
                 </S.Row>
@@ -377,7 +385,7 @@ const Cart = () => {
                     id="complement"
                     type="text"
                     {...formik.getFieldProps('complement')}
-                    maxLength={100}
+                    maxLength={45}
                   />
                 </S.InputGroup>
               </>
@@ -387,7 +395,7 @@ const Cart = () => {
                   Pagamento - Valor a pagar {formatPrice(getTotalPrice())}
                 </h3>
                 <S.InputGroup>
-                  <label htmlFor="cardName">Nome no cartão</label>
+                  <label htmlFor="cardName">Nome no cartão*</label>
                   <input
                     id="cardName"
                     type="text"
@@ -398,7 +406,7 @@ const Cart = () => {
 
                 <S.Row>
                   <S.InputGroup style={{ flex: 3 }}>
-                    <label htmlFor="cardNumber">Número do cartão</label>
+                    <label htmlFor="cardNumber">Número do cartão*</label>
                     <InputMask
                       mask="9999.9999.9999.9999"
                       value={formik.values.cardNumber}
@@ -416,7 +424,7 @@ const Cart = () => {
                   </S.InputGroup>
 
                   <S.InputGroup style={{ flex: 1 }}>
-                    <label htmlFor="cardCode">CVV</label>
+                    <label htmlFor="cardCode">CVV*</label>
                     <InputMask
                       mask="999"
                       value={formik.values.cardCode}
@@ -436,7 +444,7 @@ const Cart = () => {
 
                 <S.Row>
                   <S.InputGroup>
-                    <label htmlFor="expiresMonth">Mês de vencimento</label>
+                    <label htmlFor="expiresMonth">Mês de vencimento*</label>
                     <InputMask
                       mask="99"
                       value={formik.values.expiresMonth}
@@ -454,7 +462,7 @@ const Cart = () => {
                   </S.InputGroup>
 
                   <S.InputGroup>
-                    <label htmlFor="expiresYear">Ano de vencimento</label>
+                    <label htmlFor="expiresYear">Ano de vencimento*</label>
                     <InputMask
                       mask="9999"
                       value={formik.values.expiresYear}
